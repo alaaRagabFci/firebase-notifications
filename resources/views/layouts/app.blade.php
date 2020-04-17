@@ -11,6 +11,11 @@
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/6.0.4/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.0.4/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.0.4/firebase-database.js"></script>
+
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -49,6 +54,19 @@
                                 </li>
                             @endif
                         @else
+                            <li class="dropdown dropdown-extended dropdown-notification dropdown-dark" id="header_notification_bar">
+                                <a href="javascript:;" class="seenNotification dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                                    <i class="icon-bell"></i>
+                                    Notifications
+                                    <span class="badge badge-success"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <ul id="notificationList" class="dropdown-menu-list scroller" style="height: 250px;" data-handle-color="#637283"></ul>
+                                    </li>
+                                </ul>
+                            </li>
+
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                     {{ Auth::user()->name }} <span class="caret"></span>
@@ -76,5 +94,43 @@
             @yield('content')
         </main>
     </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script type="text/javascript">
+        $(document).ready(function() {
+        // Your web app's Firebase configuration
+          var firebaseConfig = {
+            apiKey: "AIzaSyBngdfaqXFUkLLOuNfFjMhxdN2WbjnydxU",
+            authDomain: "study-cf15c.firebaseapp.com",
+            databaseURL: "https://study-cf15c.firebaseio.com",
+            projectId: "study-cf15c",
+            storageBucket: "study-cf15c.appspot.com",
+            messagingSenderId: "393707661695",
+            appId: "1:393707661695:web:af46792d8f3de1ba97924a",
+            measurementId: "G-1CLYW46703"
+          };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const list = document.getElementById('notificationList');
+        const dbRefUsers = firebase.database().ref().child('users');
+        const dbRefCounter = dbRefUsers.child('{!! Auth::user()->id !!}'+ '/counter');
+        const dbRefNotifications = dbRefUsers.child('{!! Auth::user()->id !!}' + '/notifications').orderByChild('id');
+        dbRefNotifications.on('child_added', snap => {
+            $('.noNotificationFound').hide();
+            console.table(snap.val());
+            $('#notificationList').prepend('<'+'li class="NotificationFound"'+'><'+'a href="'+snap.val().title+'"'+'><'+'span class="time" style="max-width: 88px;"'+'>'+snap.val().created_at+'<'+'/span'+'> <'+'span class="details"'+'><'+'span class="label label-sm label-icon label-success"'+'><'+'i class="fa fa-dot-circle-o"'+'><'+'/i'+'><'+'/span'+'>'+snap.val().description +'.' +'<'+'/span'+'><'+'/a'+'><'+'/li'+'>');
+        });
+        dbRefCounter.on('value', snap => {
+            if(JSON.stringify(snap.val(), 0 ,3) !== 'null'){
+                $('.badge').html(JSON.stringify(snap.val(), 0 ,3));
+            }
+            else{
+                $('.badge').html(0);
+                $('.NotificationFound').hide();
+                $('#notificationList').append('<'+'li class="noNotificationFound"'+'><'+'a href="javascript:;"'+'><'+'span class="details"'+'><'+'span class="label label-sm label-icon label-success"'+'><'+'i class="fa fa-dot-circle-o"'+'><'+'/i'+'><'+'/span'+'>'+'لا يوجد أشعارات' +'.' +'<'+'/span'+'><'+'/a'+'><'+'/li'+'>');
+            }
+        });
+    });
+        </script>
 </body>
 </html>
